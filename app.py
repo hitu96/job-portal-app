@@ -21,7 +21,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<p class="main-title">⚡ Direct Source Job Portal</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Search live job postings and jump directly to company ATS application pages.</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Search live job postings across top boards and jump directly to company ATS application pages.</p>', unsafe_allow_html=True)
 
 # Sleek Sidebar Controls
 with st.sidebar:
@@ -30,11 +30,17 @@ with st.sidebar:
     hours_old = st.selectbox("Date Posted", [24, 72, 168, 720], index=1, format_func=lambda x: {24: "Last 24 Hours", 72: "Last 3 Days", 168: "Last 7 Days", 720: "Last 30 Days"}[x])
     results_wanted = st.slider("Results per board", 5, 30, 15)
     remote_only = st.checkbox("Remote roles only")
-    sites = st.multiselect("Active Boards", ["indeed", "naukri", "linkedin", "glassdoor"], default=["indeed", "naukri", "linkedin"])
+    
+    # Glassdoor, Google, and ZipRecruiter added alongside Indeed, Naukri, LinkedIn
+    sites = st.multiselect(
+        "Active Boards", 
+        ["indeed", "naukri", "linkedin", "glassdoor", "google", "ziprecruiter"], 
+        default=["indeed", "naukri", "linkedin", "glassdoor", "google"]
+    )
 
 # Main Search Input Bar
 with st.form("search_bar"):
-    col1, col2, col3 = st.col_2 = st.columns([3, 2, 1]) if False else st.columns([3, 2, 1])
+    col1, col2, col3 = st.columns([3, 2, 1])
     with col1:
         keyword = st.text_input("Job Title / Keyword", placeholder="e.g. Full Stack Developer, Product Manager")
     with col2:
@@ -47,8 +53,10 @@ with st.form("search_bar"):
 if search_submitted:
     if not keyword.strip():
         st.warning("Please type a keyword to search.")
+    elif not sites:
+        st.warning("Please select at least one active job board.")
     else:
-        with st.spinner(f"Scraping live listings for '{keyword}'... Please wait (~10s)"):
+        with st.spinner(f"Scraping live listings for '{keyword}' from {', '.join(sites)}... Please wait (~10s)"):
             try:
                 jobs = scrape_jobs(
                     site_name=sites,
